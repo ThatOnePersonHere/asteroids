@@ -2,8 +2,10 @@
 # the open-source pygame library
 # throughout this file
 import pygame
+import sys
 from constants import *
 import player
+import shot
 import asteroid
 import AsteroidField
 
@@ -11,6 +13,7 @@ import AsteroidField
 group_updatable = pygame.sprite.Group()
 group_drawable = pygame.sprite.Group()
 group_asteroids = pygame.sprite.Group()
+group_shots = pygame.sprite.Group()
 
 def main():
     pygame.init()
@@ -21,6 +24,7 @@ def main():
     player.Player.containers = (group_updatable, group_drawable)
     asteroid.Asteroid.containers = (group_updatable, group_drawable, group_asteroids)
     AsteroidField.AsteroidField.containers = (group_updatable)
+    #shot.Shot.container = (group_shots)
 
     # Console ouput for start
     print("Starting Asteroids!")
@@ -28,7 +32,7 @@ def main():
     print(f'Screen height: {SCREEN_HEIGHT}')
     
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-    player_instance = player.Player(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
+    player_instance = player.Player(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, group_shots)
     AsteroidField_Obj = AsteroidField.AsteroidField()
 
     while True: # Game Loop start
@@ -39,8 +43,19 @@ def main():
         for obj in group_drawable: # Draw all drawable items
             obj.draw(screen)
         group_updatable.update(dt) # Update assets position
+        for shots in group_shots:
+            shots.draw(screen)
+            shots.update()
         pygame.display.flip()
         dt = (Clock.tick(60)/1000)
+        for ea_asteroid in group_asteroids:
+            if ea_asteroid.collision(player_instance):
+                print("Game Over!")
+            for ea_shot in group_shots:
+                if ea_asteroid.collision(ea_shot):
+                    ea_asteroid.split()
+                    ea_shot.kill()
+                sys.exit()
 
 if __name__ == "__main__":
     main()
